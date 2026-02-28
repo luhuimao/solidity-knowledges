@@ -293,3 +293,211 @@ emit Transfer(from, to, amount);
 * `tenderly profiler`
 
 ---
+
+---
+
+## 十、最新编译器特性与 Gas 优化（Solidity 0.8.20 ~ 0.8.26）
+
+> 以下特性均需设置对应的 `evmVersion` 方可生效。
+
+---
+
+### 1. `PUSH0` 操作码（0.8.20 / Shanghai，EIP-3855）
+
+`PUSH0` 专用于将 `0` 推入栈顶，Gas 为 **2**（替代 `PUSH1 0x00` 的 3 Gas）。  
+编译器自动将所有字面量 `0` 替换为 `PUSH0`，无需修改代码。
+
+```toml
+# foundry.toml
+evm_version = "shanghai"   # 或 "cancun"
+```
+
+验证：`forge inspect MyContract bytecode | grep 5f`（`5f` 为 PUSH0 操作码）
+
+---
+
+### 2. EIP-1153 瞬态存储 `tstore` / `tload`（0.8.24 / Cancun）
+
+**瞬态存储**：仅在当前交易期间存在，交易结束后 EVM 自动清零。
+
+| 操作 | Gas |
+|---|:---:|
+| `SSTORE`（冷，0→非0） | 20,000 |
+| `SSTORE`（暖，非0→非0） | 5,000 |
+| **`TSTORE`** | **100** |
+| `SLOAD`（冷） | 2,100 |
+| **`TLOAD`** | **100** |
+
+```solidity
+pragma solidity ^0.8.24;
+
+contract ReentrancyGuardTransient {
+    uint256 transient private _status;   // 每次交易自动归零，Gas ~100 vs SSTORE ~20000
+
+    modifier nonReentrant() {
+        require(_status == 0, "Reentrant");
+        _status = 1;
+        _;
+        _status = 0;
+    }
+}
+```
+
+**三大应用场景**：
+- **重入锁**：节省约 ~19,900 Gas/次（vs `bool private _locked` storage 变量）
+- **Flash Accounting**：Uniswap V4 用此在 `unlock` 期间记录全局余额变化，避免多次 SSTORE
+- **临时中间值**：跨函数临时计算状态，避免 storage 污染
+
+> 需 `evm_version = "cancun"`（Solidity 0.8.25 起设为默认值）
+
+---
+
+### 3. EIP-5656 `MCOPY` 高效内存拷贝（0.8.25 / Cancun）
+
+`MCOPY` 提供高效的内存区域拷贝，替代原有 `mload/mstore` 循环。
+
+| 拷贝长度 | 旧方式 | `MCOPY` |
+|---|:---:|:---:|
+| 32 bytes | ~9 Gas | ~6 Gas |
+| 128 bytes | ~36 Gas | ~12 Gas |
+| 1024 bytes | ~288 Gas | ~60 Gas |
+
+**0.8.25+ 编译器在代码生成层自动使用 `mcopy`，无需修改代码**。受益最大的场景：
+- `abi.encode` / `abi.encodePacked` 大型数据
+- `bytes memory` / `string memory` 参数传递
+- 自定义 ABI 编解码
+
+```solidity
+// 手动使用（Yul / Inline Assembly）
+assembly {
+    mcopy(destOffset, srcOffset, length)
+}
+```
+
+---
+
+### 4. Custom Error 替代 `require` 字符串（0.8.4+，现已成熟）
+
+```solidity
+// ❌ 旧方式：字符串存储在 bytecode，部署和 revert Gas 均高
+require(amount > 0, "Amount must be positive");
+
+// ✓ 新方式：仅 4 bytes selector，节省 ~50% revert Gas
+error InvalidAmount(uint256 provided);
+if (amount == 0) revert InvalidAmount(amount);
+```
+
+| 对比项 | `require(bool, string)` | Custom Error |
+|---|:---:|:---:|
+| 部署 Gas | 高（存储字符串字节码） | 低（仅 4B selector） |
+| Revert Gas | ~500+ | ~100+ |
+| 携带上下文参数 | ✗ | ✓ |
+| 工具自动解析 | ✗ | ✓（ABI 友好） |
+
+> Uniswap V4 全库使用 Custom Error，如 `error HookAddressNotValid(address hooks)` 同时节省 Gas 并携带调试信息。
+
+---
+
+### 5. IR 优化管线 `--via-ir`（0.8.13+）
+
+通过 Yul IR 中间层进行优化，比旧版 Opcode-level 优化更深：
+
+```toml
+# foundry.toml（生产 profile）
+[profile.production]
+via_ir = true
+optimizer = true
+optimizer_runs = 200
+```
+
+**额外效果**（相比默认编译）：
+- 更激进的函数内联与常量折叠
+- 跨函数公共子表达式消除（CSE）
+- 未使用内部函数死代码消除
+- 通常减少 **5~15% Gas**
+
+> **权衡**：编译时间增加 3~10 倍，建议仅在生产构建时开启。
+
+---
+
+### 6. `assembly ("memory-safe")` 标注（0.8.13+）
+
+```solidity
+// 无标注：编译器保守处理，禁止跨块优化
+assembly { let x := mload(ptr) }
+
+// 有标注：允许编译器跨 assembly 块做更激进优化
+assembly ("memory-safe") {
+    let x := mload(ptr)  // 只操作 free-pointer 之上的 allocated 内存
+}
+```
+
+使用前提：assembly 块内仅访问 0x00–0x3f（scratch space）或 `mload(0x40)` 之后的自由内存。  
+> Uniswap V4 的 `Hooks.sol`、`CustomRevert.sol` 均大量使用此标注。
+
+---
+
+### 7. `evmVersion` 版本选择速查
+
+| EVM Version | 最低 Solidity | 关键新 Opcode |
+|---|:---:|---|
+| `london` | 0.8.7 | — |
+| `paris` | 0.8.18 | `PREVRANDAO` |
+| `shanghai` | 0.8.20 | `PUSH0`（EIP-3855）|
+| `cancun` | 0.8.24 | `TSTORE/TLOAD`（EIP-1153）、`MCOPY`（EIP-5656）|
+
+```toml
+# 推荐配置
+[profile.default]
+solc = "0.8.26"
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 200
+```
+
+---
+
+## 十一、完整 Gas 优化 Checklist（2025 版）
+
+**编译器层**
+- [ ] Solidity ≥ 0.8.24，`evm_version = "cancun"`
+- [ ] `optimizer = true`，高频合约 `runs = 10000`，低频 `runs = 200`
+- [ ] 生产构建考虑 `via_ir = true`
+
+**最新语言特性层**
+- [ ] `require(bool, string)` 全量替换为 `custom error`
+- [ ] 重入锁改用 `uint256 transient`（0.8.24+，节省 ~19,900 Gas/次）
+- [ ] bytes/string 拷贝升级至 0.8.25+ 自动享用 `mcopy`
+- [ ] 安全的 assembly 块添加 `("memory-safe")` 标注
+
+**Storage 层**
+- [ ] 合理 Packing，减少 slot 占用
+- [ ] `immutable` / `constant` 替代频繁 SLOAD
+- [ ] 跨函数临时状态改用 `transient`
+
+**函数与控制流层**
+- [ ] 对外接口用 `external` + `calldata`
+- [ ] 数学安全可证处用 `unchecked`
+- [ ] Fail Fast：最廉价的 check 放最前
+
+**架构层**
+- [ ] 事件替代高频查询的 storage 写入
+- [ ] 批处理 + 分页，避免无限 loop
+- [ ] 工厂场景用 EIP-1167 Minimal Clone
+
+---
+
+## 十二、推荐工具（2025 版）
+
+| 工具 | 用途 |
+|---|---|
+| `forge test --gas-report` | 函数级 Gas 报告 |
+| `forge snapshot` | Gas 快照 + CI 回归 |
+| `forge inspect <C> gasEstimates` | 函数 Gas 静态估算 |
+| `hardhat-gas-reporter` | Hardhat Gas 报告 |
+| `evm.codes` | Opcode Gas 成本速查（含 Cancun）|
+| `solc --ir-optimized` | 查看 via-ir 优化后 Yul |
+| `tenderly profiler` | 指令级 trace 热点分析 |
+| `sol2uml` | 存储布局可视化 |
+
+---
