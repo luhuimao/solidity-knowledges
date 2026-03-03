@@ -90,16 +90,27 @@
 
 ---
 
-## 🗂️ 文档结构
+### [solidity-advanced-production.md](./solidity-advanced-production.md)
+**Solidity 生产级实战问题解析**
+
+针对 5 个高阶工程场景，每篇均含完整代码实现：
+- **Staking 合约优化**：Synthetix 全局奖励指数（O(1) 分发）、Storage Packing、解质押批量队列
+- **Foundry Fuzzing**：基础 Fuzz、闪电贷攻击模拟、Invariant 不变量测试、权限滥用测试
+- **UUPS 升级实战**：升级前暂停、Storage Layout 兼容验证、时间锁防权限泄露
+- **ERC-6551 跨链迁移**：状态快照与哈希验证、两阶段提交、交易回滚恢复
+- **安全漏洞应急响应**：多签紧急暂停、资金隔离、PoC 复现、修复后上线 Checklist
+
+---
 
 ```
 solidity-knowledges/
-├── README.md                          # 本文件
-├── proxy-upgrade-patterns.md          # 代理升级模式（Transparent / UUPS / Beacon / Diamond）
-├── storage-slot.md                    # Storage Slot 完整解析
-├── gas-optimize.md                    # Gas 优化工程实战
-├── opcodes.md                         # EVM Opcodes 系统指南
-└── 智能合约攻击原理与防御方案.md         # 15 类攻击向量与防御
+├── README.md                              # 本文件
+├── proxy-upgrade-patterns.md             # 代理升级模式（Transparent / UUPS / Beacon / Diamond）
+├── storage-slot.md                       # Storage Slot 完整解析
+├── gas-optimize.md                       # Gas 优化工程实战
+├── opcodes.md                            # EVM Opcodes 系统指南
+├── 智能合约攻击原理与防御方案.md            # 15 类攻击向量与防御
+└── solidity-advanced-production.md       # 生产级实战：Staking / Fuzzing / UUPS / ERC-6551 / 应急响应
 ```
 
 ---
