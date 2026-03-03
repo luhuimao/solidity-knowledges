@@ -4,7 +4,20 @@
 
 ---
 
-## 📄 文档目录
+### [foundry-fuzz-testing.md](./foundry-fuzz-testing.md)
+**Solidity Fuzz 测试完整指南**
+
+使用 Foundry 对智能合约进行模糊测试，包括：
+- **三种 Fuzz 模式**：Property-Based 属性测试、Invariant 不变量测试、Stateful 有状态序列
+- **`vm.assume` vs `bound`**：输入过滤的正确姿势，防止测试效率下降
+- **Handler + Ghost Variables 完整实现**：封装合法操作、幼灵变量追踪、不变量断言
+- **失败用例复现与调试**：固定种子、最小化反例、覆盖率报告
+- **三种测试方式对比**：单元测试 / Fuzz / 形式化验证选型指南
+- **Fuzz 测试 Checklist**：代码覆盖目标、CI 配置、常见不变量模板
+
+---
+
+## 🗂️ 文档结构
 
 ### [proxy-upgrade-patterns.md](./proxy-upgrade-patterns.md)
 **Solidity 合约升级代理模式详解**
@@ -110,7 +123,8 @@ solidity-knowledges/
 ├── gas-optimize.md                       # Gas 优化工程实战
 ├── opcodes.md                            # EVM Opcodes 系统指南
 ├── 智能合约攻击原理与防御方案.md            # 15 类攻击向量与防御
-└── solidity-advanced-production.md       # 生产级实战：Staking / Fuzzing / UUPS / ERC-6551 / 应急响应
+├── solidity-advanced-production.md       # 生产级实战：Staking / Fuzzing / UUPS / ERC-6551 / 应急响应
+└── foundry-fuzz-testing.md               # Foundry Fuzz 测试完整指南
 ```
 
 ---
