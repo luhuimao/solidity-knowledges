@@ -115,6 +115,19 @@
 
 ---
 
+### [erc-vault-standards.md](./erc-vault-standards.md)
+**ERC Vault 标准详解：ERC-4626 · ERC-7540 · ERC-7575**
+
+系统介绍以太坊 Vault 系列标准，包括：
+- **ERC-4626**：代币化 Vault 标准，完整接口（deposit/mint/withdraw/redeem）、舍入规则、通胀攻击防护
+- **ERC-7540**：异步 Vault，Request/Claim 两阶段流程，适用于 RWA、跨链、欠抵押借贷等延迟场景
+- **ERC-7575**：多资产 Vault，支持多入口共享 share token、Pipe 转换器、share-to-vault 查询
+- **选型指南**：三者对比表及适用场景决策
+- **安全注意事项**：通胀攻击、重入、Operator 滥用、多入口汇率一致性
+- **完整骨架代码**：生产级 ERC-4626 实现 + ERC-7540+7575 联合实现
+
+---
+
 ```
 solidity-knowledges/
 ├── README.md                              # 本文件
@@ -124,7 +137,8 @@ solidity-knowledges/
 ├── opcodes.md                            # EVM Opcodes 系统指南
 ├── 智能合约攻击原理与防御方案.md            # 15 类攻击向量与防御
 ├── solidity-advanced-production.md       # 生产级实战：Staking / Fuzzing / UUPS / ERC-6551 / 应急响应
-└── foundry-fuzz-testing.md               # Foundry Fuzz 测试完整指南
+├── foundry-fuzz-testing.md               # Foundry Fuzz 测试完整指南
+└── erc-vault-standards.md                # ERC Vault 标准：ERC-4626 / ERC-7540 / ERC-7575
 ```
 
 ---
@@ -138,3 +152,6 @@ solidity-knowledges/
 | [EIP-2535](https://eips.ethereum.org/EIPS/eip-2535) | Diamond 标准规范 |
 | [OpenZeppelin Upgrades](https://docs.openzeppelin.com/upgrades-plugins/) | 升级插件文档 |
 | [Foundry](https://book.getfoundry.sh) | `forge test --gas-report`、`forge inspect storage` |
+| [EIP-4626](https://eips.ethereum.org/EIPS/eip-4626) | Tokenized Vault 标准规范 |
+| [EIP-7540](https://eips.ethereum.org/EIPS/eip-7540) | 异步 Vault 标准规范 |
+| [EIP-7575](https://eips.ethereum.org/EIPS/eip-7575) | 多资产 Vault 标准规范 |
