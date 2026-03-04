@@ -128,6 +128,22 @@
 
 ---
 
+### [chainlink-oracle-integration.md](./chainlink-oracle-integration.md)
+**预言机原理与 Chainlink 集成完整指南**
+
+介绍预言机工作原理及 Chainlink 在合约中的完整集成方案：
+- **预言机工作原理**：数据流转路径、OCR 脱链聚合协议、Deviation/Heartbeat 触发机制
+- **Chainlink DON 三层架构**：Consumer / Proxy / Aggregator 各组件分析
+- **AggregatorV3Interface**：`latestRoundData` 完整字段解析、decimals 换算
+- **生产级安全校验**：三重校验（负价、降香、Round 完整性）+ 多源交叉验证
+- **L2 Sequencer 存活检查**：Arbitrum/Optimism 夯机期检测与宽限期
+- **Chainlink VRF v2.5**：可验证链上随机数集成
+- **Chainlink Automation**：条件自动化执行（原 Keepers）
+- **预言机攻击与防护**：闪贷锻价、陈旧价格、熟断器绕过、安全 Checklist
+- **完整生产示例**：借贷协议价格预言机模块（多代币、WAD 精度、应急暂停）
+
+---
+
 ```
 solidity-knowledges/
 ├── README.md                              # 本文件
@@ -138,7 +154,8 @@ solidity-knowledges/
 ├── 智能合约攻击原理与防御方案.md            # 15 类攻击向量与防御
 ├── solidity-advanced-production.md       # 生产级实战：Staking / Fuzzing / UUPS / ERC-6551 / 应急响应
 ├── foundry-fuzz-testing.md               # Foundry Fuzz 测试完整指南
-└── erc-vault-standards.md                # ERC Vault 标准：ERC-4626 / ERC-7540 / ERC-7575
+├── erc-vault-standards.md                # ERC Vault 标准：ERC-4626 / ERC-7540 / ERC-7575
+└── chainlink-oracle-integration.md       # 预言机原理与 Chainlink 集成
 ```
 
 ---
@@ -155,3 +172,6 @@ solidity-knowledges/
 | [EIP-4626](https://eips.ethereum.org/EIPS/eip-4626) | Tokenized Vault 标准规范 |
 | [EIP-7540](https://eips.ethereum.org/EIPS/eip-7540) | 异步 Vault 标准规范 |
 | [EIP-7575](https://eips.ethereum.org/EIPS/eip-7575) | 多资产 Vault 标准规范 |
+| [Chainlink Data Feeds](https://docs.chain.link/data-feeds) | 预言机喜价官方文档 |
+| [Chainlink Feed Addresses](https://docs.chain.link/data-feeds/price-feeds/addresses) | 各网络 Feed 地址 |
+| [Chainlink VRF](https://docs.chain.link/vrf) | 链上可验证随机数 |
