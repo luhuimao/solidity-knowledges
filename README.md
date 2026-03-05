@@ -144,6 +144,21 @@
 
 ---
 
+### [contract-data-migration.md](./contract-data-migration.md)
+**智能合约数据迁移方案大全**
+
+基于五大迁移场景的完整实战方案：
+- **方案一：代理升级（零迁移）**：UUPS 升级流程、`reinitializer`、Storage 兼容性验证
+- **方案二：懒惰迁移（Lazy Migration）**：首次访问时自动拉当旧合约数据，摧量迁移成本
+- **方案三：Merkle Proof 迁移**：链下快照+构建 Merkle 树，用户自助认领，适合大规模迁移
+- **方案四：全量批量写入**：Owner 脚本逐批复制，适合小规模合约
+- **方案五：双合约并行过渡**：Router 分流 + 逐步引流，零合约中断
+- **Storage 布局兼容性验证**：`forge inspect` + OZ 自动检测 + `__gap` 预留
+- **迁移安全设计**：旧合约暂停、多签审批、Timelock、回滚方案
+- **完整 Checklist**：迁移前/中/后三阶段验证项
+
+---
+
 ```
 solidity-knowledges/
 ├── README.md                              # 本文件
@@ -155,7 +170,8 @@ solidity-knowledges/
 ├── solidity-advanced-production.md       # 生产级实战：Staking / Fuzzing / UUPS / ERC-6551 / 应急响应
 ├── foundry-fuzz-testing.md               # Foundry Fuzz 测试完整指南
 ├── erc-vault-standards.md                # ERC Vault 标准：ERC-4626 / ERC-7540 / ERC-7575
-└── chainlink-oracle-integration.md       # 预言机原理与 Chainlink 集成
+├── chainlink-oracle-integration.md       # 预言机原理与 Chainlink 集成
+└── contract-data-migration.md            # 合约数据迁移方案：代理升级/懒迁移/Merkle/全量复制/双合约
 ```
 
 ---
